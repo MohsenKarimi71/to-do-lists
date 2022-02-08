@@ -1,5 +1,8 @@
-from selenium import webdriver
+import time
 import unittest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
 class NewVisitorTest(unittest.TestCase):
@@ -11,34 +14,45 @@ class NewVisitorTest(unittest.TestCase):
         self.browser.quit()
 
     def test_can_start_a_list_and_retrieve_it_later(self):
-        # Ali has heared ablout a cool new online to-do app. He goes to check 
+        # Ali has heared ablout a cool new online to-do app. He goes to check
         # out its homepage
         self.browser.get('http://localhost:8000')
 
         # He notices the page title and header mention to-do lists
         self.assertIn('To-Do', self.browser.title)
-        self.fail('finish the test')
-        
+        header_text = self.browser.find_element(By.TAG_NAME, 'h1').text
+        self.assertIn('To-Do', header_text)
+
         # He is invited to enter a to-do item straight away
+        input_box = self.browser.find_element(By.ID, 'new_item_input')
+        self.assertEqual(input_box.get_attribute(
+            'placeholder'), 'Enter a new to-do item')
 
         # He types "Read clean-code book" into a text box
+        input_box.send_keys('Read clean-code book')
+        input_box.send_keys(Keys.ENTER)
+        time.sleep(1)
 
         # When he hits enter, the pages updates, and now page lists
         # "1: Read clean-code book" as an item in a to-do list
+        items_table = self.browser.find_element(By.ID, 'items_table')
+        rows = items_table.find_elements(By.TAG_NAME, 'tr')
+        self.assertTrue(any(row.text == '1: Read clean-code book' for row in rows))
 
         # There is still a text box inviting him to add another item. He enters
         # "Read TDD with python book" and hits enter
 
         # The page updates again, and now shows both items on his list
 
-        # Ali wonders wheater the site will remember her list. Then he sees 
-        # that the site has generated a unique URL for him and there is some 
+        # Ali wonders wheater the site will remember her list. Then he sees
+        # that the site has generated a unique URL for him and there is some
         # explanations text for that
 
         # He visits that URL and sees that his to-do list is still there
 
         # Satisfies, she goes back to sleep
+        self.fail('finish the test')
+
 
 if __name__ == '__main__':
     unittest.main()
-    
