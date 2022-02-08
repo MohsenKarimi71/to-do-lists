@@ -9,6 +9,11 @@ class NewVisitorTest(unittest.TestCase):
 
     def setUp(self):
         self.browser = webdriver.Firefox()
+    
+    def check_if_row_in_table_rows(self, row_text):
+        items_table = self.browser.find_element(By.ID, 'items_table')
+        rows = items_table.find_elements(By.TAG_NAME, 'tr')
+        self.assertIn(row_text, [row.text for row in rows])
 
     def tearDown(self):
         self.browser.quit()
@@ -36,9 +41,7 @@ class NewVisitorTest(unittest.TestCase):
 
         # When he hits enter, the pages updates, and now page lists
         # "1: Read clean-code book" as an item in a to-do list
-        items_table = self.browser.find_element(By.ID, 'items_table')
-        rows = items_table.find_elements(By.TAG_NAME, 'tr')
-        self.assertIn('1: Read clean-code book', [row.text for row in rows])
+        self.check_if_row_in_table_rows('1: Read clean-code book')
 
         # There is still a text box inviting him to add another item. He enters
         # "Read TDD with python book" and hits enter
@@ -51,8 +54,8 @@ class NewVisitorTest(unittest.TestCase):
         # The page updates again, and now shows both items on his list
         items_table = self.browser.find_element(By.ID, 'items_table')
         rows = items_table.find_elements(By.TAG_NAME, 'tr')
-        self.assertIn('1: Read clean-code book', [row.text for row in rows])
-        self.assertIn('2: Read TDD with python book', [row.text for row in rows])
+        self.check_if_row_in_table_rows('1: Read clean-code book')
+        self.check_if_row_in_table_rows('2: Read TDD with python book')
 
         # Ali wonders wheater the site will remember her list. Then he sees
         # that the site has generated a unique URL for him and there is some
