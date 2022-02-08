@@ -30,22 +30,29 @@ class NewVisitorTest(unittest.TestCase):
 
         # He types "Read clean-code book" into a text box
         input_box.send_keys('Read clean-code book')
-        input_box.send_keys(Keys.ENTER)
         time.sleep(1)
+        input_box.send_keys(Keys.ENTER)
+        time.sleep(3)
 
         # When he hits enter, the pages updates, and now page lists
         # "1: Read clean-code book" as an item in a to-do list
         items_table = self.browser.find_element(By.ID, 'items_table')
         rows = items_table.find_elements(By.TAG_NAME, 'tr')
-        self.assertTrue(
-            any(row.text == '1: Read clean-code book' for row in rows),
-            'New to-do item did not appear in table'
-        )
+        self.assertIn('1: Read clean-code book', [row.text for row in rows])
 
         # There is still a text box inviting him to add another item. He enters
         # "Read TDD with python book" and hits enter
+        input_box = self.browser.find_element(By.ID, 'new_item_input')
+        input_box.send_keys('Read TDD with python book')
+        time.sleep(1)
+        input_box.send_keys(Keys.ENTER)
+        time.sleep(3)
 
         # The page updates again, and now shows both items on his list
+        items_table = self.browser.find_element(By.ID, 'items_table')
+        rows = items_table.find_elements(By.TAG_NAME, 'tr')
+        self.assertIn('1: Read clean-code book', [row.text for row in rows])
+        self.assertIn('2: Read TDD with python book', [row.text for row in rows])
 
         # Ali wonders wheater the site will remember her list. Then he sees
         # that the site has generated a unique URL for him and there is some
@@ -54,6 +61,7 @@ class NewVisitorTest(unittest.TestCase):
         # He visits that URL and sees that his to-do list is still there
 
         # Satisfies, she goes back to sleep
+        time.sleep(1)
         self.fail('finish the test')
 
 
