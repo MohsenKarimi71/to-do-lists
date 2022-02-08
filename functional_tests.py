@@ -37,7 +37,10 @@ class NewVisitorTest(unittest.TestCase):
         # "1: Read clean-code book" as an item in a to-do list
         items_table = self.browser.find_element(By.ID, 'items_table')
         rows = items_table.find_elements(By.TAG_NAME, 'tr')
-        self.assertTrue(any(row.text == '1: Read clean-code book' for row in rows))
+        self.assertTrue(
+            any(row.text == '1: Read clean-code book' for row in rows),
+            'New to-do item did not appear in table'
+        )
 
         # There is still a text box inviting him to add another item. He enters
         # "Read TDD with python book" and hits enter
