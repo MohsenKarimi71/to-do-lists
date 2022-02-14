@@ -1,8 +1,14 @@
 from django.test import LiveServerTestCase
+
 import time
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
+
+
+MAX_WAIT = 10
 
 
 class NewVisitorTest(LiveServerTestCase):
@@ -10,15 +16,24 @@ class NewVisitorTest(LiveServerTestCase):
     def setUp(self):
         self.browser = webdriver.Firefox()
     
-    def check_if_row_in_table_rows(self, row_text):
-        items_table = self.browser.find_element(By.ID, 'items_table')
-        rows = items_table.find_elements(By.TAG_NAME, 'tr')
-        self.assertIn(row_text, [row.text for row in rows])
+    def wait_for_row_in_table_rows(self, row_text):
+        start_time = time.time()
+        while True:
+            try:
+                items_table = self.browser.find_element(By.ID, 'items_table')
+                rows = items_table.find_elements(By.TAG_NAME, 'tr')
+                self.assertIn(row_text, [row.text for row in rows])
+                return
+
+            except (AssertionError, WebDriverException) as e:
+                if time.time() - start_time > MAX_WAIT:
+                    raise e
+                time.sleep(0.5)
 
     def tearDown(self):
         self.browser.quit()
 
-    def test_can_start_a_list_and_retrieve_it_later(self):
+    def test_can_start_a_list_for_one_user(self):
         # Ali has heared ablout a cool new online to-do app. He goes to check
         # out its homepage
         self.browser.get(self.live_server_url)
@@ -35,34 +50,60 @@ class NewVisitorTest(LiveServerTestCase):
 
         # He types "Read clean-code book" into a text box
         input_box.send_keys('Read clean-code book')
-        time.sleep(1)
-        input_box.send_keys(Keys.ENTER)
-        time.sleep(3)
 
         # When he hits enter, the pages updates, and now page lists
         # "1: Read clean-code book" as an item in a to-do list
-        self.check_if_row_in_table_rows('1: Read clean-code book')
+        input_box.send_keys(Keys.ENTER)
+        self.wait_for_row_in_table_rows('1: Read clean-code book')
 
         # There is still a text box inviting him to add another item. He enters
         # "Read TDD with python book" and hits enter
         input_box = self.browser.find_element(By.ID, 'new_item_input')
         input_box.send_keys('Read TDD with python book')
-        time.sleep(1)
         input_box.send_keys(Keys.ENTER)
-        time.sleep(3)
 
         # The page updates again, and now shows both items on his list
-        items_table = self.browser.find_element(By.ID, 'items_table')
-        rows = items_table.find_elements(By.TAG_NAME, 'tr')
-        self.check_if_row_in_table_rows('1: Read clean-code book')
-        self.check_if_row_in_table_rows('2: Read TDD with python book')
+        self.wait_for_row_in_table_rows('1: Read clean-code book')
+        self.wait_for_row_in_table_rows('2: Read TDD with python book')
+        # Satisfied, she goes back to sleep
+    
+    def test_multiple_users_can_start_lists_on_defferent_urls(self):
+        # Ali starts a new to-do list
+        self.browser.get(self.live_server_url)
+        input_box = self.browser.find_element(By.ID, 'new_item_input')
+        input_box.send_keys('Read TDD with python book')
+        input_box.send_keys(Keys.ENTER)
+        self.wait_for_row_in_table_rows('1: Read TDD with python book')
 
-        # Ali wonders wheater the site will remember her list. Then he sees
-        # that the site has generated a unique URL for him and there is some
-        # explanations text for that
+        # He notices that her list has a unique URL
+        ali_list_url = self.browser.current_url
+        self.assertRegex(ali_list_url, '/lists/.+')
 
-        # He visits that URL and sees that his to-do list is still there
+        # Now a new user, Reza, comes along to the site.
+        # we use a new browser session to make sure that no information
+        # of Ali's is coming through cookies etc
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
 
-        # Satisfies, she goes back to sleep
-        time.sleep(1)
-        self.fail('finish the test')
+        # Reza visits the home page. There is no sign of Ali's list
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').texts
+        self.assertNotIn('Read TDD with python book', page_text)
+        self.assertNotIn('clean-code', page_text)
+
+        # Reza starts a new list by entering a new item.
+        input_box = self.browser.find_element(By.ID, 'new_item_input')
+        input_box.send_keys('Buy milk')
+        input_box.send_keys(Keys.ENTER)
+        self.wait_for_row_in_table_rows('1: Buy milk')
+
+        # Reza gets his own unique URL
+        reza_list_url = self.browser.current_url
+        self.assertRegex(reza_list_url, '/lists/.+')
+        self.assertNotEqual(reza_list_url, ali_list_url)
+
+        # Again, there is no trace of Ali's list
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
+        self.assertNotIn('Read TDD with python book', page_text)
+        self.assertIn('Buy milk', page_text)
+        # satisfied, they both go back to sleep
