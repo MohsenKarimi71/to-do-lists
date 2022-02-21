@@ -87,7 +87,7 @@ class NewVisitorTest(LiveServerTestCase):
 
         # Reza visits the home page. There is no sign of Ali's list
         self.browser.get(self.live_server_url)
-        page_text = self.browser.find_element(By.TAG_NAME, 'body').texts
+        page_text = self.browser.find_element(By.TAG_NAME, 'body').text
         self.assertNotIn('Read TDD with python book', page_text)
         self.assertNotIn('clean-code', page_text)
 

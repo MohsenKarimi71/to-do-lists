@@ -10,13 +10,20 @@
     <h1 style="text-align: center;">Enjoy Your To-Do List App!</h1>
     
     <p><b>
-        Start a new To-Do list
+        Enter your to-do item in the input-box below and hit Enter!
     </b></p>
 
-    <form method="POST">
+    <form method="POST" action="/">
         {% csrf_token %}
         <input id="new_item_input" name="new_item_text" placeholder="Enter a new to-do item">
     </form>
 
+    <table id="items_table">
+        {% for item in items %}
+            <tr>
+                <td>{{ forloop.counter }}: {{ item.text }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>
