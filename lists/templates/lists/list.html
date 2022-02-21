@@ -13,7 +13,7 @@
         Enter your to-do item in the input-box below and hit Enter!
     </b></p>
 
-    <form method="POST" action="/">
+    <form method="POST" action="/lists/new">
         {% csrf_token %}
         <input id="new_item_input" name="new_item_text" placeholder="Enter a new to-do item">
     </form>
