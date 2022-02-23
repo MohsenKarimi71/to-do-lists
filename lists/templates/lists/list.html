@@ -13,13 +13,13 @@
         Enter your to-do item in the input-box below and hit Enter!
     </b></p>
 
-    <form method="POST" action="/lists/new">
+    <form method="POST" action="/lists/{{ list.id }}/add_item">
         {% csrf_token %}
         <input id="new_item_input" name="new_item_text" placeholder="Enter a new to-do item">
     </form>
 
     <table id="items_table">
-        {% for item in items %}
+        {% for item in list.item_set.all %}
             <tr>
                 <td>{{ forloop.counter }}: {{ item.text }}</td>
             </tr>
