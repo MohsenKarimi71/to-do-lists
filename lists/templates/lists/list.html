@@ -1,23 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do lists</title>
-</head>
-<body>
-    <h1 style="text-align: center;">Enjoy Your To-Do List App!</h1>
-    
-    <p><b>
-        Enter your to-do item in the input-box below and hit Enter!
-    </b></p>
+{% extends 'lists/base.html' %}
 
-    <form method="POST" action="/lists/{{ list.id }}/add_item">
-        {% csrf_token %}
-        <input id="new_item_input" name="new_item_text" placeholder="Enter a new to-do item">
-    </form>
+{% block header_text %}Your To-Do list{% endblock %}
 
+{% block form_action %}/lists/{{ list.id }}/add_item{% endblock %}
+
+{% block table %}
     <table id="items_table">
         {% for item in list.item_set.all %}
             <tr>
@@ -25,5 +12,4 @@
             </tr>
         {% endfor %}
     </table>
-</body>
-</html>
+{% endblock %}
