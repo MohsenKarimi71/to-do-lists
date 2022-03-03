@@ -1,4 +1,5 @@
 from typing import List
+from django.forms import ValidationError
 from django.shortcuts import render, redirect
 
 from .models import Item, List
@@ -16,7 +17,14 @@ def view_list(request, list_id):
 
 def new_list(request):
     list_ = List.objects.create()
-    Item.objects.create(text=request.POST['new_item_text'], list=list_)
+    item = Item(text=request.POST['new_item_text'], list=list_)
+    try:
+        item.full_clean()
+        item.save()
+    except ValidationError:
+        list_.delete()
+        error_msg = "The list item can't be empty"
+        return render(request, 'lists/home.html', {"error": error_msg})
     return redirect(f'/lists/{list_.id}/')
 
 
